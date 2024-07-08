@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Game Characters</title>
+  <style>
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      background-color: #333;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      margin: 0;
+    }
+    .search-container {
+      display: flex;
+      justify-content: center;
+      margin: 1.5rem 0;
+    }
+  
+    .search-container .input-field {
+      width: 100%;
+      max-width: 400px;
+      padding: 12px 20px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+  
+    .search-container .btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  
+    .search-container .btn:hover {
+      background-color: #45a049;
+    }
+  
+    #game-characters-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-gap: 1.5rem;
+      padding: 1.5rem;
+    }
+  
+    .game-character{
+      background-color: #fff;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      text-align: center;
+    }
+  
+    .game-character h3 {
+      margin-top: 0;
+      color: green;
+    }
+    .game-character img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+    <h1>Hollow Game Characters</h1>
+    <div class="search-container">
+      <input type="text" id="search-input" placeholder="Search by name..." class="input-field" />
+      <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+      <button onclick="handleSearch()" class="btn">Search</button>
+    </div>
+    <div id="game-characters-container"></div>
+</body>
+<script>
+    function handleSearch(){
+        const searchInput = document.getElementById('search-input');
+        const csrfToken = document.getElementById('csrf-token').value;
+        const searchQuery = searchInput.value.trim();
+        fetch('/get_game_charecters/', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ name: searchQuery})
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayGameCharacters(data);
+        })
+        .catch(error => {
+            console.error('Error fetching game characters:', error);
+        });
+    }
+
+    function displayGameCharacters(gameCharacters) {
+      const gameCharactersContainer = document.getElementById('game-characters-container');
+      gameCharactersContainer.innerHTML = '';
+      gameCharacters.forEach(gameCharacter => {
+        const gameCharacterElement = document.createElement('div');
+        gameCharacterElement.classList.add('game-character');
+        const nameElement = document.createElement('h3');
+        nameElement.textContent = gameCharacter.name;
+        gameCharacterElement.appendChild(nameElement);
+
+        const descriptionElement = document.createElement('p');
+        descriptionElement.textContent = gameCharacter.description;
+        gameCharacterElement.appendChild(descriptionElement);
+
+        const typeElement = document.createElement('p');
+        typeElement.textContent = `Type: ${gameCharacter.type}`;
+        gameCharacterElement.appendChild(typeElement);
+
+        if (gameCharacter.photo) {
+          const photoElement = document.createElement('img');
+          photoElement.src = gameCharacter.photo;
+          photoElement.alt = gameCharacter.name;
+          gameCharacterElement.appendChild(photoElement);
+        }
+
+        gameCharactersContainer.appendChild(gameCharacterElement);
+      });
+    }
+  </script>
+</html>
